@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO; // Agregado para capturar IOException si el servidor se cae
 using System.Net.Sockets;
 using System.Text;
 using Spectre.Console;
@@ -16,8 +17,6 @@ try
     NetworkStream stream = client.GetStream();
     bool conectado = true;
 
-    var historial = new Rows();
-    
     while (conectado)
     {
         string mensaje = AnsiConsole.Prompt(
@@ -32,29 +31,38 @@ try
             continue;
         }
 
-        byte[] dataEnviar = Encoding.UTF8.GetBytes(mensaje);
-        stream.Write(dataEnviar, 0, dataEnviar.Length);
-
-        byte[] dataRecibir = new byte[1024];
-        int bytesLeidos = stream.Read(dataRecibir, 0, dataRecibir.Length);
-        
-        if (bytesLeidos > 0)
+        try
         {
-            string respuesta = Encoding.UTF8.GetString(dataRecibir, 0, bytesLeidos);
-            
-            string contenidoLimpio = $"[Gold1]Tú:[/] {Markup.Escape(mensaje)}\n[bold DeepPink4_2]Servidor:[/] {Markup.Escape(respuesta)}";
+            byte[] dataEnviar = Encoding.UTF8.GetBytes(mensaje);
+            stream.Write(dataEnviar, 0, dataEnviar.Length);
 
-            var panel = new Panel(contenidoLimpio)
+            byte[] dataRecibir = new byte[1024];
+            int bytesLeidos = stream.Read(dataRecibir, 0, dataRecibir.Length);
+            
+            if (bytesLeidos > 0)
             {
-                Border = BoxBorder.Rounded,
-                Padding = new Padding(1, 0, 1, 0)
-            };
-            
-            AnsiConsole.Write(panel);
+                string respuesta = Encoding.UTF8.GetString(dataRecibir, 0, bytesLeidos);
+                
+                string contenidoLimpio = $"[Gold1]Tú:[/] {Markup.Escape(mensaje)}\n[bold DeepPink4_2]Servidor:[/] {Markup.Escape(respuesta)}";
+
+                var panel = new Panel(contenidoLimpio)
+                {
+                    Border = BoxBorder.Rounded,
+                    Padding = new Padding(1, 0, 1, 0)
+                };
+                
+                AnsiConsole.Write(panel);
+            }
+            else
+            {
+                AnsiConsole.MarkupLine("\n[bold red]✖ El servidor interrumpió la conexión.[/]");
+                conectado = false;
+            }
         }
-        else
+        catch (IOException)
         {
-            AnsiConsole.MarkupLine("[red] El servidor interrumpió la conexión.[/]");
+            // Captura si el servidor se cerró mientras el usuario escribía y se intentó hacer stream.Write
+            AnsiConsole.MarkupLine("\n[bold red]✖ Error:[/] No se pudo enviar el mensaje. El servidor no está disponible.");
             conectado = false;
         }
     }
@@ -65,5 +73,7 @@ try
 }
 catch (Exception e) 
 {
+    // Captura errores iniciales de conexión (ej. si el servidor nunca estuvo encendido)
+    AnsiConsole.MarkupLine("[bold red]No se pudo establecer la conexión inicial con el servidor.[/]");
     AnsiConsole.WriteException(e);
 }
