@@ -16,7 +16,7 @@ const server = net.createServer((socket) => {
     });
 
     socket.on('end', () => {
-        console.log(`[${new Date().toLocalTimeString()}] El cliente se ha desconectado.`);
+        console.log(`[${new Date().toLocaleTimeString()}] El cliente se ha desconectado.`);
     });
 
     socket.on('error', (err) => {
