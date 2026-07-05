@@ -4,9 +4,9 @@ using System.Net.Sockets;
 using System.Text;
 using Spectre.Console;
 
+
 AnsiConsole.Write(
     new FigletText("SOCKY CHAT")
-        .Centered()
         .Color(Color.Pink1));
 
 try 
