@@ -1,5 +1,5 @@
 ﻿using System;
-using System.IO; // Agregado para capturar IOException si el servidor se cae
+using System.IO; 
 using System.Net.Sockets;
 using System.Text;
 using Spectre.Console;
@@ -61,7 +61,6 @@ try
         }
         catch (IOException)
         {
-            // Captura si el servidor se cerró mientras el usuario escribía y se intentó hacer stream.Write
             AnsiConsole.MarkupLine("\n[bold red]✖ Error:[/] No se pudo enviar el mensaje. El servidor no está disponible.");
             conectado = false;
         }
@@ -73,7 +72,6 @@ try
 }
 catch (Exception e) 
 {
-    // Captura errores iniciales de conexión (ej. si el servidor nunca estuvo encendido)
     AnsiConsole.MarkupLine("[bold red]No se pudo establecer la conexión inicial con el servidor.[/]");
     AnsiConsole.WriteException(e);
 }
